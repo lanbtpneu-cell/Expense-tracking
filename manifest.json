@@ -1,7 +1,7 @@
 {
   "name": "Chi Tiêu",
   "short_name": "Chi Tiêu",
-  "start_url": "/ten-repository/expense-tracker.html",
+  "start_url": "./expense-tracker.html",
   "display": "standalone",
   "background_color": "#FFF5F9",
   "theme_color": "#AB47BC",
