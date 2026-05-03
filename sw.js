@@ -1,5 +1,5 @@
-const CACHE = 'chitieu-v1'; 
-const ASSETS = ['./expense-tracker.html', './manifest.json', './icon-192.png']; 
+const CACHE = 'chitieu-v2'; 
+const ASSETS = ['/Expense-tracking/expense-tracker.html', '/Expense-tracking/manifest.json', '/Expense-tracking/icon-192.png']; 
 
 self.addEventListener('install', e => { 
     e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))); 
