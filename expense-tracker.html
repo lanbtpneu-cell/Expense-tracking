@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Chi Tiêu</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#AB47BC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Chi Tiêu">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink:#F8BBD0;--pink-light:#FCE4EC;--purple:#CE93D8;
+            --purple-light:#F3E5F5;--purple-dark:#9C27B0;--white:#FFFFFF;
+            --bg:#FFF5F9;--text:#5D3A6E;--text-light:#9B7AAE;
+            --card-shadow:0 3px 14px rgba(206,147,216,0.18);
+            --green:#66BB6A;--red:#EF5350;
+        }
+        .dark-mode {
+            --pink:#7B1FA2;--pink-light:#3A1450;--purple:#6A1B9A;
+            --purple-light:#2C1338;--purple-dark:#E1BEE7;--white:#1E0A2B;
+            --bg:#140820;--text:#E8D5F5;--text-light:#B39DDB;
+            --card-shadow:0 3px 14px rgba(0,0,0,0.45);
+            --green:#81C784;--red:#EF9A9A;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Quicksand',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;transition:all .3s;overflow-x:hidden}
+        .header{background:linear-gradient(135deg,#E1BEE7,#CE93D8,#BA68C8);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+        .dark-mode .header{background:linear-gradient(135deg,#4A148C,#6A1B9A,#7B1FA2)}
+        .header-left{display:flex;align-items:center;gap:14px}
+        .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:4px}
+        .menu-btn span{display:block;width:20px;height:2.5px;background:#fff;border-radius:2px}
+        .header-title{font-size:22px;font-weight:700;color:#fff;letter-spacing:.5px}
+        .theme-toggle{background:rgba(255,255,255,.2);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;opacity:0;visibility:hidden;transition:.3s}
+        .sidebar-overlay.active{opacity:1;visibility:visible}
+        .sidebar{position:fixed;top:0;left:-280px;width:280px;height:100%;background:var(--white);z-index:300;transition:.3s}
+        .sidebar.active{left:0}
+        .sidebar-header{padding:30px 20px 18px;text-align:center;border-bottom:1px solid var(--pink-light)}
+        .sidebar-header h2{font-size:22px;font-weight:700;color:var(--purple-dark)}
+        .sidebar-header p{font-size:12px;color:var(--text-light);margin-top:2px}
+        .sidebar-item{display:flex;align-items:center;gap:12px;padding:15px 22px;cursor:pointer;transition:.2s;border-left:3px solid transparent;font-size:15px;font-weight:600;color:var(--text)}
+        .sidebar-item:hover,.sidebar-item.active{background:var(--pink-light);border-left-color:var(--purple-dark);color:var(--purple-dark)}
+        .sidebar-item .icon{font-size:18px;width:26px;text-align:center}
+        .content{padding:14px;padding-bottom:80px}
+        .card{background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--card-shadow);border:1px solid var(--pink-light)}
+        .card-title{font-size:12px;color:var(--text-light);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:600}
+        .card-value{font-size:22px;font-weight:700;color:var(--purple-dark)}
+        .card-value.neg{color:var(--red)}.card-value.pos{color:var(--green)}
+        .card-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .card-sm{padding:13px}.card-sm .card-value{font-size:17px}
+        .month-sel{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
+        .month-sel button{background:var(--purple);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Quicksand',sans-serif}
+        .month-sel span{font-size:16px;font-weight:700;min-width:140px;text-align:center}
+        .list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--pink-light)}
+        .list-item:last-child{border-bottom:none}
+        .li-left{flex:1;min-width:0}.li-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .li-sub{font-size:11px;color:var(--text-light);margin-top:2px;font-weight:500}
+        .li-amt{font-size:15px;font-weight:700;white-space:nowrap}
+        .li-amt.inc{color:var(--green)}.li-amt.exp{color:var(--red)}
+        .tdot{position:relative;cursor:pointer;padding:4px 8px;font-size:18px;color:var(--text-light);user-select:none}
+        .tdot-menu{position:absolute;right:0;top:100%;background:var(--white);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:140px;z-index:50;display:none;overflow:hidden;border:1px solid var(--pink-light)}
+        .tdot-menu.show{display:block}
+        .tdot-menu button{display:block;width:100%;padding:11px 16px;border:none;background:none;text-align:left;font-size:13px;cursor:pointer;color:var(--text);font-family:'Quicksand',sans-serif;font-weight:600}
+        .tdot-menu button:hover{background:var(--pink-light)}
+        .tdot-menu button.danger{color:var(--red)}
+        .fab{position:fixed;bottom:22px;right:22px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#E1BEE7,#AB47BC);color:#fff;border:none;font-size:26px;cursor:pointer;box-shadow:0 4px 18px rgba(171,71,188,.4);display:flex;align-items:center;justify-content:center;z-index:50;font-family:'Quicksand',sans-serif}
+        .dark-mode .fab{background:linear-gradient(135deg,#6A1B9A,#9C27B0)}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:none;align-items:flex-end;justify-content:center}
+        .modal-overlay.active{display:flex}
+        .modal{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:85vh;padding:22px;overflow-y:auto;animation:slideUp .3s}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        .modal h3{font-size:18px;margin-bottom:16px;color:var(--purple-dark);text-align:center;font-weight:700}
+        .fg{margin-bottom:13px}
+        .fg label{display:block;font-size:12px;color:var(--text-light);margin-bottom:4px;font-weight:700}
+        .fg input,.fg select,.fg textarea{width:100%;padding:11px 13px;border:1.5px solid var(--pink);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);outline:none;font-family:'Quicksand',sans-serif;font-weight:500}
+        .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--purple-dark);box-shadow:0 0 0 3px rgba(171,71,188,.15)}
+        .fg textarea{resize:vertical;min-height:50px}
+        .btn{padding:12px 20px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:'Quicksand',sans-serif}
+        .btn-p{background:linear-gradient(135deg,#E1BEE7,#AB47BC);color:#fff}
+        .dark-mode .btn-p{background:linear-gradient(135deg,#6A1B9A,#9C27B0)}
+        .btn-s{background:var(--pink-light);color:var(--text);margin-top:8px}
+        .chip{display:inline-block;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:700}
+        .chip-pink{background:var(--pink-light);color:var(--purple-dark)}
+        .date-hdr{font-size:12px;font-weight:700;color:var(--purple-dark);padding:8px 0 4px;margin-top:6px;border-bottom:2px solid var(--purple)}
+        .empty{text-align:center;padding:30px 16px;color:var(--text-light)}.empty .ei{font-size:40px;margin-bottom:8px}
+        .tab-content{display:none}.tab-content.active{display:block}
+        .cat-card{cursor:pointer;transition:.2s}.cat-card:hover{transform:translateY(-1px)}
+        .back-btn{background:none;border:none;font-size:14px;color:var(--purple-dark);cursor:pointer;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;font-family:'Quicksand',sans-serif}
+        .wallet-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+        .wallet-row .wl{font-size:12px;color:var(--text-light);font-weight:600}
+        .wallet-row .wv{font-size:14px;font-weight:700}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--pink);border-radius:4px}
+        .section-hdr{display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px}
+        .section-title{font-size:15px;font-weight:700}
+        .add-btn{background:var(--purple);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Quicksand',sans-serif;font-weight:700}
+        .budget-cat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--pink-light)}
+        .budget-cat-row:last-child{border-bottom:none}
+        .toggle-row{display:flex;gap:0;margin-bottom:14px;border-radius:12px;overflow:hidden;border:1.5px solid var(--pink)}
+        .toggle-btn{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;background:var(--bg);color:var(--text-light);border:none;font-family:'Quicksand',sans-serif;transition:.2s}
+        .toggle-btn.active{background:linear-gradient(135deg,#E1BEE7,#AB47BC);color:#fff}
+        .dark-mode .toggle-btn.active{background:linear-gradient(135deg,#6A1B9A,#9C27B0)}
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="header-left">
+        <button class="menu-btn" onclick="toggleSidebar()" aria-label="Menu"><span></span><span></span><span></span></button>
+        <div class="header-title">Chi Tiêu</div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Theme">🌙</button>
+</div>
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar">
+    <div class="sidebar-header"><h2>Chi Tiêu</h2><p>Quản lý tài chính cá nhân</p></div>
+    <div>
+        <div class="sidebar-item active" onclick="switchTab('tab1')"><span class="icon">🏠</span> Tổng hợp tháng</div>
+        <div class="sidebar-item" onclick="switchTab('tab2')"><span class="icon">🎀</span> Ngân sách</div>
+        <div class="sidebar-item" onclick="switchTab('tab3')"><span class="icon">👛</span> Thống kê ví</div>
+        <div class="sidebar-item" onclick="switchTab('tab4')"><span class="icon">🍀</span> Tổng thu</div>
+        <div class="sidebar-item" onclick="switchTab('tab5')"><span class="icon">🛒</span> Tổng chi</div>
+    </div>
+</div>
+<div class="content">
+    <div id="tab1" class="tab-content active"></div>
+    <div id="tab2" class="tab-content"></div>
+    <div id="tab3" class="tab-content"></div>
+    <div id="tab4" class="tab-content"></div>
+    <div id="tab5" class="tab-content"></div>
+</div>
+<div class="modal-overlay" id="modalOverlay"><div class="modal" id="modalContent"></div></div>
+<script>
+// ===== DATA =====
+const SK='expense_tracker_v3';
+let D=load(),curMonth=getCurPayMonth(),curTab='tab1',detailView=null;
+function defaults(){return{budgets:{},budgetCats:[{id:'bc1',name:'Ăn uống'},{id:'bc2',name:'Di chuyển'},{id:'bc3',name:'Mỹ phẩm'},{id:'bc4',name:'Quần áo'},{id:'bc5',name:'Giải trí'},{id:'bc6',name:'Khác'}],budgetAlloc:{},wallets:[{id:'w1',name:'Tiền mặt',balances:{}},{id:'w2',name:'Ngân hàng',balances:{}}],incomeCats:[{id:'ic1',name:'Lương'},{id:'ic2',name:'Thưởng'},{id:'ic3',name:'Chuyển ví',isTransfer:true}],expenseCats:[{id:'ec1',name:'Thức ăn'},{id:'ec2',name:'Mỹ phẩm'},{id:'ec3',name:'Quần áo'},{id:'ec4',name:'Hóa đơn'},{id:'ec5',name:'Khác'}],incomes:[],expenses:[]}}
+function load(){try{const s=localStorage.getItem(SK);if(s){return{...defaults(),...JSON.parse(s)}}}catch(e){}return defaults()}
+function save(){localStorage.setItem(SK,JSON.stringify(D))}
+// ===== MONTH =====
+function getCurPayMonth(){const n=new Date();if(n.getDate()>=5)return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;const p=new Date(n.getFullYear(),n.getMonth()-1,1);return`${p.getFullYear()}-${String(p.getMonth()+1).padStart(2,'0')}`}
+function monthRange(mk){const[y,m]=mk.split('-').map(Number);return{start:new Date(y,m-1,5),end:new Date(m===12?y+1:y,m===12?0:m,4)}}
+function daysLeft(mk){
+    const{start,end}=monthRange(mk);const t=new Date();t.setHours(0,0,0,0);start.setHours(0,0,0,0);end.setHours(0,0,0,0);
+    const td=Math.ceil((end-start)/864e5)+1;
+    if(t<start)return td; // tháng tương lai: trả về tổng ngày
+    if(t>end)return 0; // tháng đã qua
+    return Math.max(Math.ceil((end-t)/864e5)+1,1); // tháng hiện tại
+}
+function totalDays(mk){const{start,end}=monthRange(mk);start.setHours(0,0,0,0);end.setHours(0,0,0,0);return Math.ceil((end-start)/864e5)+1}
+function fmtMonth(mk){const[y,m]=mk.split('-').map(Number);return`Tháng ${m}/${y}`}
+function chgMonth(d){const[y,m]=curMonth.split('-').map(Number);const dt=new Date(y,m-1+d,1);curMonth=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;detailView=null;renderAll()}
+function fmt(n){return new Intl.NumberFormat('vi-VN').format(Math.round(n))+' ₫'}
+function fmtD(ds){const d=new Date(ds);return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`}
+function inMonth(ds,mk){const{start,end}=monthRange(mk);const d=new Date(ds);d.setHours(0,0,0,0);start.setHours(0,0,0,0);end.setHours(23,59,59,999);return d>=start&&d<=end}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+// ===== THEME =====
+let isDark=localStorage.getItem('theme')==='dark';if(isDark)document.body.classList.add('dark-mode');updTh();
+function toggleTheme(){isDark=!isDark;document.body.classList.toggle('dark-mode',isDark);localStorage.setItem('theme',isDark?'dark':'light');updTh()}
+function updTh(){document.querySelector('.theme-toggle').textContent=isDark?'☀️':'🌙'}
+// ===== SIDEBAR =====
+function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('active');document.querySelector('.sidebar-overlay').classList.toggle('active')}
+function switchTab(t){curTab=t;detailView=null;document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));document.getElementById(t).classList.add('active');document.querySelectorAll('.sidebar-item').forEach(e=>{e.classList.toggle('active',e.getAttribute('onclick')===`switchTab('${t}')`)});toggleSidebar();renderAll()}
+// ===== MODAL =====
+function openModal(h){document.getElementById('modalContent').innerHTML=h;document.getElementById('modalOverlay').classList.add('active')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active')}
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal()});
+// ===== MENU =====
+document.addEventListener('click',e=>{if(!e.target.closest('.tdot'))document.querySelectorAll('.tdot-menu').forEach(m=>m.classList.remove('show'))});
+function tMenu(id,ev){ev.stopPropagation();document.querySelectorAll('.tdot-menu').forEach(m=>{if(m.id!==id)m.classList.remove('show')});document.getElementById(id).classList.toggle('show')}
+// ===== RENDER =====
+function renderAll(){renderTab1();renderTab2();renderTab3();renderTab4();renderTab5()}
+function mSel(id){return`<div class="month-sel"><button onclick="chgMonth(-1)">◀</button><span id="${id}">${fmtMonth(curMonth)}</span><button onclick="chgMonth(1)">▶</button></div>`}
+function wOpts(sel){return D.wallets.map(w=>`<option value="${w.id}"${w.id===sel?' selected':''}>${w.name}</option>`).join('')}
+
+// ===== TAB 1: TỔNG HỢP =====
+function renderTab1(){
+    const b=D.budgets[curMonth]||0,me=D.expenses.filter(e=>inMonth(e.date,curMonth)),
+    tE=me.reduce((s,e)=>s+e.amount,0),rem=b-tE,dl=daysLeft(curMonth),td=totalDays(curMonth),
+    daily=td>0?b/td:0,perDay=dl>0?rem/dl:0;
+    const{start,end}=monthRange(curMonth);const now=new Date();now.setHours(0,0,0,0);start.setHours(0,0,0,0);end.setHours(0,0,0,0);
+    const isFuture=now<start,isPast=now>end;
+    const dlLabel=isFuture?`${td} ngày (chưa bắt đầu)`:isPast?'Đã kết thúc':`Còn ${dl} ngày trong tháng lương`;
+    document.getElementById('tab1').innerHTML=mSel('ml1')+
+    `<div class="card"><div class="card-title">Tổng ngân sách</div><div class="card-value">${fmt(b)}</div></div>
+    <div class="card-row"><div class="card card-sm"><div class="card-title">Tổng chi</div><div class="card-value neg">${fmt(tE)}</div></div>
+    <div class="card card-sm"><div class="card-title">Còn lại</div><div class="card-value ${rem>=0?'pos':'neg'}">${fmt(rem)}</div></div></div>
+    <div class="card-row"><div class="card card-sm"><div class="card-title">Hạn mức / ngày</div><div class="card-value">${fmt(daily)}</div></div>
+    <div class="card card-sm"><div class="card-title">Có thể tiêu</div><div class="card-value ${rem>=0?'pos':'neg'}">${fmt(rem)}</div></div></div>
+    <div class="card"><div class="card-title">Còn tiêu / ngày</div><div class="card-value ${perDay>=0?'pos':'neg'}">${fmt(perDay)}</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:4px;font-weight:600">${dlLabel}</div></div>`;
+}
+
+// ===== TAB 2: NGÂN SÁCH (9 ô, auto sinh) =====
+function renderTab2(){
+    const el=document.getElementById('tab2');
+    if(detailView&&detailView.tab==='budget'){renderBudgetDetail(el);return}
+    const[cy,cm]=curMonth.split('-').map(Number);
+    let h=mSel('ml2')+'<div class="section-hdr"><div class="section-title">Ngân sách theo tháng</div></div>';
+    for(let i=-4;i<=4;i++){
+        const d=new Date(cy,cm-1+i,1),k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,v=calcBudgetTotal(k),ic=k===curMonth;
+        h+=`<div class="card cat-card" onclick="showBM('${k}')" style="${ic?'border-left:4px solid var(--purple-dark)':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="card-title">${fmtMonth(k)} ${ic?'<span class="chip chip-pink">Hiện tại</span>':''}</div>
+        <div class="card-value" style="font-size:18px">${fmt(v)}</div></div>
+        <span style="color:var(--purple-dark);font-size:22px;font-weight:700">›</span></div></div>`;
+    }
+    el.innerHTML=h;
+}
+function showBM(mk){detailView={tab:'budget',month:mk};renderBudgetDetail(document.getElementById('tab2'))}
+function renderBudgetDetail(el){
+    const mk=detailView.month;if(!D.budgetAlloc[mk])D.budgetAlloc[mk]={};
+    const alloc=D.budgetAlloc[mk],total=calcBudgetTotal(mk);
+    let h=`<button class="back-btn" onclick="detailView=null;renderTab2()">← Quay lại</button>
+    <div class="card"><div class="card-title">${fmtMonth(mk)}</div>
+    <div class="card-value" style="font-size:20px">${fmt(total)}</div></div>
+    <div class="section-hdr"><div class="section-title">Hạng mục</div><button class="add-btn" onclick="mAddBC()">+ Thêm</button></div>`;
+    D.budgetCats.forEach(c=>{const v=alloc[c.id]||0,mid='bm_'+c.id;
+        h+=`<div class="card"><div class="budget-cat-row"><div><div style="font-weight:700;font-size:14px">${c.name}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--purple-dark);margin-top:2px">${fmt(v)}</div></div>
+        <div class="tdot" onclick="tMenu('${mid}',event)">⋮<div class="tdot-menu" id="${mid}">
+        <button onclick="mEditBA('${mk}','${c.id}')">Sửa số tiền</button>
+        <button onclick="mEditBC('${c.id}')">Đổi tên</button>
+        <button class="danger" onclick="delBC('${c.id}')">Xóa</button></div></div></div></div>`;
+    });
+    el.innerHTML=h;
+}
+function mEditBA(mk,cid){if(!D.budgetAlloc[mk])D.budgetAlloc[mk]={};openModal(`<h3>Phân bổ</h3><div class="fg"><label>Số tiền</label><input type="number" id="mV" value="${D.budgetAlloc[mk][cid]||0}" inputmode="numeric"></div><button class="btn btn-p" onclick="D.budgetAlloc['${mk}']['${cid}']=parseFloat(document.getElementById('mV').value)||0;syncBudgetTotal('${mk}');save();closeModal();renderAll()">Lưu</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function calcBudgetTotal(mk){if(!D.budgetAlloc[mk])return D.budgets[mk]||0;return D.budgetCats.reduce((s,c)=>s+(D.budgetAlloc[mk][c.id]||0),0)}
+function syncBudgetTotal(mk){D.budgets[mk]=calcBudgetTotal(mk)}
+function mAddBC(){openModal(`<h3>Thêm hạng mục</h3><div class="fg"><label>Tên</label><input type="text" id="mV" placeholder="VD: Y tế..."></div><button class="btn btn-p" onclick="const n=document.getElementById('mV').value.trim();if(!n)return alert('Nhập tên');D.budgetCats.push({id:uid(),name:n});save();closeModal();renderAll()">Thêm</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function mEditBC(cid){const c=D.budgetCats.find(x=>x.id===cid);if(!c)return;openModal(`<h3>Đổi tên</h3><div class="fg"><label>Tên</label><input type="text" id="mV" value="${c.name}"></div><button class="btn btn-p" onclick="const c=D.budgetCats.find(x=>x.id==='${cid}');if(c)c.name=document.getElementById('mV').value.trim();save();closeModal();renderAll()">Lưu</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function delBC(cid){if(confirm('Xóa?')){D.budgetCats=D.budgetCats.filter(c=>c.id!==cid);save();renderAll()}}
+
+// ===== TAB 3: VÍ =====
+function calcWBal(wid,upTo){
+    const w=D.wallets.find(x=>x.id===wid);if(!w)return 0;let b=w.balances[curMonth]||0;
+    D.incomes.filter(i=>inMonth(i.date,curMonth)&&new Date(i.date)<=new Date(upTo)).forEach(i=>{if(i.walletId===wid)b+=i.amount;if(i.fromWalletId===wid)b-=i.amount});
+    D.expenses.filter(e=>inMonth(e.date,curMonth)&&new Date(e.date)<=new Date(upTo)).forEach(e=>{if(e.walletId===wid)b-=e.amount});
+    return b;
+}
+function renderTab3(){
+    const el=document.getElementById('tab3');
+    if(detailView&&detailView.tab==='wallet'){renderWD(el);return}
+    const td=new Date().toISOString().split('T')[0];
+    let h=mSel('ml3')+'<div class="section-hdr"><div class="section-title">Các ví</div><button class="add-btn" onclick="mAddW()">+ Thêm ví</button></div>';
+    D.wallets.forEach(w=>{const ob=w.balances[curMonth]||0,bal=calcWBal(w.id,td),mid='wm_'+w.id;
+        h+=`<div class="card cat-card" onclick="showWD('${w.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-weight:700;font-size:15px">👛 ${w.name}</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="color:var(--purple-dark);font-size:18px">›</span>
+        <div class="tdot" onclick="event.stopPropagation();tMenu('${mid}',event)">⋮<div class="tdot-menu" id="${mid}">
+        <button onclick="event.stopPropagation();mEditW('${w.id}')">Sửa</button>
+        <button class="danger" onclick="event.stopPropagation();delW('${w.id}')">Xóa</button></div></div></div></div>
+        <div class="wallet-row"><span class="wl">Đầu tháng (05/${curMonth.split('-')[1]})</span><span class="wv">${fmt(ob)}</span></div>
+        <div class="wallet-row"><span class="wl">Số dư hiện tại</span><span class="wv" style="color:var(--purple-dark)">${fmt(bal)}</span></div></div>`;
+    });
+    if(!D.wallets.length)h+='<div class="empty"><div class="ei">👛</div><p>Chưa có ví</p></div>';
+    el.innerHTML=h;
+}
+function showWD(wid){detailView={tab:'wallet',walletId:wid};renderWD(document.getElementById('tab3'))}
+function renderWD(el){
+    const w=D.wallets.find(x=>x.id===detailView.walletId);if(!w){detailView=null;renderTab3();return}
+    const td=new Date().toISOString().split('T')[0],bal=calcWBal(w.id,td);
+    const txns=[];
+    D.incomes.filter(i=>inMonth(i.date,curMonth)&&(i.walletId===w.id||i.fromWalletId===w.id)).forEach(i=>{
+        const c=D.incomeCats.find(x=>x.id===i.categoryId);
+        if(i.fromWalletId===w.id)txns.push({date:i.date,name:i.note||c?.name||'Chuyển ví',amount:-i.amount,type:'out'});
+        else txns.push({date:i.date,name:i.note||c?.name||'Thu',amount:i.amount,type:c?.isTransfer?'in':'inc'});
+    });
+    D.expenses.filter(e=>inMonth(e.date,curMonth)&&e.walletId===w.id).forEach(e=>{
+        const c=D.expenseCats.find(x=>x.id===e.categoryId);txns.push({date:e.date,name:e.note||c?.name||'Chi',amount:-e.amount,type:'exp'});
+    });
+    txns.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    let h=`<button class="back-btn" onclick="detailView=null;renderTab3()">← Quay lại</button>
+    <div class="card"><div class="card-title">👛 ${w.name}</div><div class="card-value" style="font-size:20px">${fmt(bal)}</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:4px;font-weight:600">Đầu tháng: ${fmt(w.balances[curMonth]||0)}</div></div>
+    <div class="section-hdr"><div class="section-title">Giao dịch</div></div>`;
+    if(!txns.length)h+='<div class="empty"><p>Chưa có giao dịch</p></div>';
+    else{const g={};txns.forEach(t=>{if(!g[t.date])g[t.date]=[];g[t.date].push(t)});
+        Object.keys(g).forEach(d=>{h+=`<div class="date-hdr">📅 ${fmtD(d)}</div>`;
+            g[d].forEach(t=>{const cls=t.amount>=0?'inc':'exp';const ic=t.type==='inc'?'🍀':t.type==='exp'?'🛒':'🔄';
+                h+=`<div class="list-item"><div class="li-left"><div class="li-name">${ic} ${t.name}</div></div><div class="li-amt ${cls}">${t.amount>=0?'+':''}${fmt(t.amount)}</div></div>`;
+            });
+        });
+    }
+    el.innerHTML=h;
+}
+function mAddW(){openModal(`<h3>Thêm ví</h3><div class="fg"><label>Tên</label><input type="text" id="mN" placeholder="VD: MoMo..."></div><div class="fg"><label>Số dư đầu tháng</label><input type="number" id="mB" placeholder="0" inputmode="numeric"></div><button class="btn btn-p" onclick="const n=document.getElementById('mN').value.trim();if(!n)return alert('Nhập tên');const w={id:uid(),name:n,balances:{}};w.balances[curMonth]=parseFloat(document.getElementById('mB').value)||0;D.wallets.push(w);save();closeModal();renderAll()">Thêm</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function mEditW(wid){const w=D.wallets.find(x=>x.id===wid);if(!w)return;openModal(`<h3>Sửa ví</h3><div class="fg"><label>Tên</label><input type="text" id="mN" value="${w.name}"></div><div class="fg"><label>Số dư đầu tháng</label><input type="number" id="mB" value="${w.balances[curMonth]||0}" inputmode="numeric"></div><button class="btn btn-p" onclick="const w=D.wallets.find(x=>x.id==='${wid}');if(w){w.name=document.getElementById('mN').value.trim();w.balances[curMonth]=parseFloat(document.getElementById('mB').value)||0}save();closeModal();renderAll()">Lưu</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function delW(wid){if(confirm('Xóa ví?')){D.wallets=D.wallets.filter(w=>w.id!==wid);save();renderAll()}}
+
+// ===== TAB 4: TỔNG THU (có toggle Thu thường / Chuyển ví) =====
+function renderTab4(){
+    const el=document.getElementById('tab4');
+    if(detailView&&detailView.tab==='income'){renderID(el);return}
+    const mi=D.incomes.filter(i=>inMonth(i.date,curMonth));
+    const realInc=mi.filter(i=>{const c=D.incomeCats.find(x=>x.id===i.categoryId);return!c||!c.isTransfer});
+    const total=realInc.reduce((s,i)=>s+i.amount,0);
+    let h=mSel('ml4')+`<div class="card"><div class="card-title">Tổng thu trong tháng</div><div class="card-value pos">${fmt(total)}</div></div>
+    <div class="section-hdr"><div class="section-title">Hạng mục</div><button class="add-btn" onclick="mAddIC()">+ Thêm</button></div>`;
+    D.incomeCats.forEach(c=>{const ci=mi.filter(i=>i.categoryId===c.id),ct=ci.reduce((s,i)=>s+i.amount,0),mid='icm_'+c.id;
+        h+=`<div class="card cat-card" onclick="showID('${c.id}')"><div style="display:flex;justify-content:space-between;align-items:center">
+        <div><span style="font-weight:600">${c.name}</span> ${c.isTransfer?'<span class="chip chip-pink">🔄 Chuyển ví</span>':''}</div>
+        <div style="display:flex;align-items:center;gap:6px"><span class="li-amt inc">${fmt(ct)}</span>
+        <div class="tdot" onclick="event.stopPropagation();tMenu('${mid}',event)">⋮<div class="tdot-menu" id="${mid}">
+        <button onclick="event.stopPropagation();mEditIC('${c.id}')">Sửa</button>
+        <button class="danger" onclick="event.stopPropagation();delIC('${c.id}')">Xóa</button></div></div>
+        <span style="color:var(--purple-dark);font-size:18px">›</span></div></div></div>`;
+    });
+    h+='<button class="fab" onclick="mAddIncModal()">+</button>';
+    el.innerHTML=h;
+}
+function showID(cid){detailView={tab:'income',catId:cid};renderID(document.getElementById('tab4'))}
+function renderID(el){
+    const c=D.incomeCats.find(x=>x.id===detailView.catId);if(!c){detailView=null;renderTab4();return}
+    const items=D.incomes.filter(i=>inMonth(i.date,curMonth)&&i.categoryId===c.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    let h=`<button class="back-btn" onclick="detailView=null;renderTab4()">← Quay lại</button>
+    <div class="card"><div class="card-title">${c.name} ${c.isTransfer?'🔄':''}</div><div class="card-value pos" style="font-size:20px">${fmt(items.reduce((s,i)=>s+i.amount,0))}</div></div>`;
+    if(!items.length)h+='<div class="empty"><p>Chưa có giao dịch</p></div>';
+    else{const g={};items.forEach(i=>{if(!g[i.date])g[i.date]=[];g[i.date].push(i)});
+        Object.keys(g).forEach(d=>{h+=`<div class="date-hdr">📅 ${fmtD(d)}</div>`;
+            g[d].forEach(i=>{const w=D.wallets.find(x=>x.id===i.walletId),fw=i.fromWalletId?D.wallets.find(x=>x.id===i.fromWalletId):null,mid='ii_'+i.id;
+                h+=`<div class="list-item"><div class="li-left"><div class="li-name">${i.note||c.name}</div>
+                <div class="li-sub">${fw?fw.name+' → ':'→ '}${w?w.name:'?'}</div></div>
+                <div style="display:flex;align-items:center;gap:6px"><span class="li-amt inc">+${fmt(i.amount)}</span>
+                <div class="tdot" onclick="tMenu('${mid}',event)">⋮<div class="tdot-menu" id="${mid}">
+                <button onclick="mEditInc('${i.id}')">Sửa</button><button class="danger" onclick="delI('${i.id}')">Xóa</button></div></div></div></div>`;
+            });
+        });
+    }
+    h+='<button class="fab" onclick="mAddIncModal()">+</button>';
+    el.innerHTML=h;
+}
+
+// Modal thêm thu nhập: có toggle Thu thường / Chuyển ví
+function mAddIncModal(){
+    const{start,end}=monthRange(curMonth);const td=new Date().toISOString().split('T')[0];
+    const catOpts=D.incomeCats.filter(c=>!c.isTransfer).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    openModal(`<h3>Thêm thu nhập</h3>
+    <div class="toggle-row"><button class="toggle-btn active" id="tgNormal" onclick="toggleIncType('normal')">Thu thường</button>
+    <button class="toggle-btn" id="tgTransfer" onclick="toggleIncType('transfer')">Chuyển ví</button></div>
+    <div id="incNormalForm">
+        <div class="fg"><label>Nội dung</label><input type="text" id="mIN" placeholder="VD: Lương tháng 5..."></div>
+        <div class="fg"><label>Số tiền</label><input type="number" id="mIA" placeholder="0" inputmode="numeric"></div>
+        <div class="fg"><label>Mục</label><select id="mIC">${catOpts}</select></div>
+        <div class="fg"><label>Ví nhận</label><select id="mIW">${wOpts()}</select></div>
+        <div class="fg"><label>Ngày</label><input type="date" id="mID" value="${td}" min="${start.toISOString().split('T')[0]}" max="${end.toISOString().split('T')[0]}"></div>
+        <button class="btn btn-p" onclick="saveIncNormal()">Lưu</button>
+    </div>
+    <div id="incTransferForm" style="display:none">
+        <div class="fg"><label>Nội dung</label><input type="text" id="mTN" placeholder="VD: Rút tiền ATM..."></div>
+        <div class="fg"><label>Số tiền</label><input type="number" id="mTA" placeholder="0" inputmode="numeric"></div>
+        <div class="fg"><label>Chuyển từ ví</label><select id="mTF">${wOpts()}</select></div>
+        <div class="fg"><label>Chuyển đến ví</label><select id="mTT">${wOpts()}</select></div>
+        <div class="fg"><label>Ngày</label><input type="date" id="mTD" value="${td}" min="${start.toISOString().split('T')[0]}" max="${end.toISOString().split('T')[0]}"></div>
+        <button class="btn btn-p" onclick="saveIncTransfer()">Lưu</button>
+    </div>
+    <button class="btn btn-s" onclick="closeModal()">Hủy</button>`);
+}
+function toggleIncType(type){
+    document.getElementById('tgNormal').classList.toggle('active',type==='normal');
+    document.getElementById('tgTransfer').classList.toggle('active',type==='transfer');
+    document.getElementById('incNormalForm').style.display=type==='normal'?'block':'none';
+    document.getElementById('incTransferForm').style.display=type==='transfer'?'block':'none';
+}
+function saveIncNormal(){
+    const note=document.getElementById('mIN').value.trim(),amt=parseFloat(document.getElementById('mIA').value)||0,
+    catId=document.getElementById('mIC').value,wid=document.getElementById('mIW').value,date=document.getElementById('mID').value;
+    if(amt<=0)return alert('Nhập số tiền');if(!date)return alert('Chọn ngày');
+    D.incomes.push({id:uid(),note,amount:amt,categoryId:catId,walletId:wid,fromWalletId:null,date});
+    save();closeModal();renderAll();
+}
+function saveIncTransfer(){
+    const note=document.getElementById('mTN').value.trim(),amt=parseFloat(document.getElementById('mTA').value)||0,
+    fwid=document.getElementById('mTF').value,twid=document.getElementById('mTT').value,date=document.getElementById('mTD').value;
+    if(amt<=0)return alert('Nhập số tiền');if(!date)return alert('Chọn ngày');
+    if(fwid===twid)return alert('Ví chuyển và ví nhận phải khác nhau');
+    // Tìm hoặc tạo category chuyển ví
+    let tc=D.incomeCats.find(c=>c.isTransfer);
+    if(!tc){tc={id:uid(),name:'Chuyển ví',isTransfer:true};D.incomeCats.push(tc)}
+    D.incomes.push({id:uid(),note:note||'Chuyển ví',amount:amt,categoryId:tc.id,walletId:twid,fromWalletId:fwid,date});
+    save();closeModal();renderAll();
+}
+function mEditInc(iid){
+    const it=D.incomes.find(x=>x.id===iid);if(!it)return;
+    const cat=D.incomeCats.find(c=>c.id===it.categoryId);
+    const isT=cat&&cat.isTransfer;
+    const{start,end}=monthRange(curMonth);
+    if(isT){
+        openModal(`<h3>Sửa chuyển ví</h3>
+        <div class="fg"><label>Nội dung</label><input type="text" id="mTN" value="${it.note||''}"></div>
+        <div class="fg"><label>Số tiền</label><input type="number" id="mTA" value="${it.amount}" inputmode="numeric"></div>
+        <div class="fg"><label>Từ ví</label><select id="mTF">${wOpts(it.fromWalletId)}</select></div>
+        <div class="fg"><label>Đến ví</label><select id="mTT">${wOpts(it.walletId)}</select></div>
+        <div class="fg"><label>Ngày</label><input type="date" id="mTD" value="${it.date}"></div>
+        <input type="hidden" id="mEID" value="${it.id}">
+        <button class="btn btn-p" onclick="updIncT()">Cập nhật</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`);
+    } else {
+        const catOpts=D.incomeCats.filter(c=>!c.isTransfer).map(c=>`<option value="${c.id}"${c.id===it.categoryId?' selected':''}>${c.name}</option>`).join('');
+        openModal(`<h3>Sửa thu nhập</h3>
+        <div class="fg"><label>Nội dung</label><input type="text" id="mIN" value="${it.note||''}"></div>
+        <div class="fg"><label>Số tiền</label><input type="number" id="mIA" value="${it.amount}" inputmode="numeric"></div>
+        <div class="fg"><label>Mục</label><select id="mIC">${catOpts}</select></div>
+        <div class="fg"><label>Ví nhận</label><select id="mIW">${wOpts(it.walletId)}</select></div>
+        <div class="fg"><label>Ngày</label><input type="date" id="mID" value="${it.date}"></div>
+        <input type="hidden" id="mEID" value="${it.id}">
+        <button class="btn btn-p" onclick="updIncN()">Cập nhật</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`);
+    }
+}
+function updIncN(){const id=document.getElementById('mEID').value,idx=D.incomes.findIndex(i=>i.id===id);if(idx<0)return;
+    D.incomes[idx]={...D.incomes[idx],note:document.getElementById('mIN').value.trim(),amount:parseFloat(document.getElementById('mIA').value)||0,categoryId:document.getElementById('mIC').value,walletId:document.getElementById('mIW').value,date:document.getElementById('mID').value};save();closeModal();renderAll()}
+function updIncT(){const id=document.getElementById('mEID').value,idx=D.incomes.findIndex(i=>i.id===id);if(idx<0)return;
+    D.incomes[idx]={...D.incomes[idx],note:document.getElementById('mTN').value.trim(),amount:parseFloat(document.getElementById('mTA').value)||0,walletId:document.getElementById('mTT').value,fromWalletId:document.getElementById('mTF').value,date:document.getElementById('mTD').value};save();closeModal();renderAll()}
+function delI(id){if(confirm('Xóa?')){D.incomes=D.incomes.filter(i=>i.id!==id);save();renderAll()}}
+function mAddIC(){openModal(`<h3>Thêm mục thu</h3><div class="fg"><label>Tên</label><input type="text" id="mV" placeholder="VD: Freelance..."></div><div class="fg"><label><input type="checkbox" id="mCT"> Là chuyển ví</label></div><button class="btn btn-p" onclick="const n=document.getElementById('mV').value.trim();if(!n)return alert('Nhập tên');D.incomeCats.push({id:uid(),name:n,isTransfer:document.getElementById('mCT').checked});save();closeModal();renderAll()">Thêm</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function mEditIC(cid){const c=D.incomeCats.find(x=>x.id===cid);if(!c)return;openModal(`<h3>Sửa mục thu</h3><div class="fg"><label>Tên</label><input type="text" id="mV" value="${c.name}"></div><div class="fg"><label><input type="checkbox" id="mCT" ${c.isTransfer?'checked':''}> Là chuyển ví</label></div><button class="btn btn-p" onclick="const c=D.incomeCats.find(x=>x.id==='${cid}');if(c){c.name=document.getElementById('mV').value.trim();c.isTransfer=document.getElementById('mCT').checked}save();closeModal();renderAll()">Lưu</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function delIC(id){if(confirm('Xóa?')){D.incomeCats=D.incomeCats.filter(c=>c.id!==id);save();renderAll()}}
+
+// ===== TAB 5: TỔNG CHI =====
+function renderTab5(){
+    const el=document.getElementById('tab5');
+    if(detailView&&detailView.tab==='expense'){renderED(el);return}
+    const me=D.expenses.filter(e=>inMonth(e.date,curMonth)),total=me.reduce((s,e)=>s+e.amount,0);
+    let h=mSel('ml5')+`<div class="card"><div class="card-title">Tổng chi trong tháng</div><div class="card-value neg">${fmt(total)}</div></div>
+    <div class="section-hdr"><div class="section-title">Hạng mục</div><button class="add-btn" onclick="mAddEC()">+ Thêm</button></div>`;
+    D.expenseCats.forEach(c=>{const ce=me.filter(e=>e.categoryId===c.id),ct=ce.reduce((s,e)=>s+e.amount,0),mid='ecm_'+c.id;
+        h+=`<div class="card cat-card" onclick="showED('${c.id}')"><div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:600">${c.name}</div>
+        <div style="display:flex;align-items:center;gap:6px"><span class="li-amt exp">${fmt(ct)}</span>
+        <div class="tdot" onclick="event.stopPropagation();tMenu('${mid}',event)">⋮<div class="tdot-menu" id="${mid}">
+        <button onclick="event.stopPropagation();mEditEC('${c.id}')">Sửa</button>
+        <button class="danger" onclick="event.stopPropagation();delEC('${c.id}')">Xóa</button></div></div>
+        <span style="color:var(--purple-dark);font-size:18px">›</span></div></div></div>`;
+    });
+    h+='<button class="fab" onclick="mAddExp()">+</button>';
+    el.innerHTML=h;
+}
+function showED(cid){detailView={tab:'expense',catId:cid};renderED(document.getElementById('tab5'))}
+function renderED(el){
+    const c=D.expenseCats.find(x=>x.id===detailView.catId);if(!c){detailView=null;renderTab5();return}
+    const items=D.expenses.filter(e=>inMonth(e.date,curMonth)&&e.categoryId===c.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    let h=`<button class="back-btn" onclick="detailView=null;renderTab5()">← Quay lại</button>
+    <div class="card"><div class="card-title">${c.name}</div><div class="card-value neg" style="font-size:20px">${fmt(items.reduce((s,e)=>s+e.amount,0))}</div></div>`;
+    if(!items.length)h+='<div class="empty"><p>Chưa có giao dịch</p></div>';
+    else{const g={};items.forEach(e=>{if(!g[e.date])g[e.date]=[];g[e.date].push(e)});
+        Object.keys(g).forEach(d=>{h+=`<div class="date-hdr">📅 ${fmtD(d)}</div>`;
+            g[d].forEach(e=>{const w=D.wallets.find(x=>x.id===e.walletId),mid='ei_'+e.id;
+                h+=`<div class="list-item"><div class="li-left"><div class="li-name">${e.note||c.name}</div>
+                <div class="li-sub">${w?w.name:'?'}</div></div>
+                <div style="display:flex;align-items:center;gap:6px"><span class="li-amt exp">-${fmt(e.amount)}</span>
+                <div class="tdot" onclick="tMenu('${mid}',event)">⋮<div class="tdot-menu" id="${mid}">
+                <button onclick="mEditExp('${e.id}')">Sửa</button><button class="danger" onclick="delE('${e.id}')">Xóa</button></div></div></div></div>`;
+            });
+        });
+    }
+    h+='<button class="fab" onclick="mAddExp()">+</button>';
+    el.innerHTML=h;
+}
+function mAddExp(){
+    const catOpts=D.expenseCats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    const{start,end}=monthRange(curMonth);const td=new Date().toISOString().split('T')[0];
+    openModal(`<h3>Thêm chi tiêu</h3>
+    <div class="fg"><label>Nội dung</label><input type="text" id="mEN" placeholder="VD: Cơm trưa..."></div>
+    <div class="fg"><label>Số tiền</label><input type="number" id="mEA" placeholder="0" inputmode="numeric"></div>
+    <div class="fg"><label>Mục</label><select id="mEC">${catOpts}</select></div>
+    <div class="fg"><label>Ví chi</label><select id="mEW">${wOpts()}</select></div>
+    <div class="fg"><label>Ngày</label><input type="date" id="mED" value="${td}" min="${start.toISOString().split('T')[0]}" max="${end.toISOString().split('T')[0]}"></div>
+    <button class="btn btn-p" onclick="saveExp()">Lưu</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`);
+}
+function mEditExp(eid){
+    const it=D.expenses.find(x=>x.id===eid);if(!it)return;
+    const catOpts=D.expenseCats.map(c=>`<option value="${c.id}"${c.id===it.categoryId?' selected':''}>${c.name}</option>`).join('');
+    openModal(`<h3>Sửa chi tiêu</h3>
+    <div class="fg"><label>Nội dung</label><input type="text" id="mEN" value="${it.note||''}"></div>
+    <div class="fg"><label>Số tiền</label><input type="number" id="mEA" value="${it.amount}" inputmode="numeric"></div>
+    <div class="fg"><label>Mục</label><select id="mEC">${catOpts}</select></div>
+    <div class="fg"><label>Ví chi</label><select id="mEW">${wOpts(it.walletId)}</select></div>
+    <div class="fg"><label>Ngày</label><input type="date" id="mED" value="${it.date}"></div>
+    <input type="hidden" id="mEEID" value="${it.id}">
+    <button class="btn btn-p" onclick="saveExp()">Cập nhật</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`);
+}
+function saveExp(){
+    const eid=document.getElementById('mEEID')?.value;
+    const note=document.getElementById('mEN').value.trim(),amt=parseFloat(document.getElementById('mEA').value)||0,
+    catId=document.getElementById('mEC').value,wid=document.getElementById('mEW').value,date=document.getElementById('mED').value;
+    if(amt<=0)return alert('Nhập số tiền');if(!date)return alert('Chọn ngày');
+    if(eid){const idx=D.expenses.findIndex(e=>e.id===eid);if(idx>=0)D.expenses[idx]={...D.expenses[idx],note,amount:amt,categoryId:catId,walletId:wid,date}}
+    else D.expenses.push({id:uid(),note,amount:amt,categoryId:catId,walletId:wid,date});
+    save();closeModal();renderAll();
+}
+function delE(id){if(confirm('Xóa?')){D.expenses=D.expenses.filter(e=>e.id!==id);save();renderAll()}}
+function mAddEC(){openModal(`<h3>Thêm mục chi</h3><div class="fg"><label>Tên</label><input type="text" id="mV" placeholder="VD: Giải trí..."></div><button class="btn btn-p" onclick="const n=document.getElementById('mV').value.trim();if(!n)return alert('Nhập tên');D.expenseCats.push({id:uid(),name:n});save();closeModal();renderAll()">Thêm</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function mEditEC(cid){const c=D.expenseCats.find(x=>x.id===cid);if(!c)return;openModal(`<h3>Sửa mục chi</h3><div class="fg"><label>Tên</label><input type="text" id="mV" value="${c.name}"></div><button class="btn btn-p" onclick="const c=D.expenseCats.find(x=>x.id==='${cid}');if(c)c.name=document.getElementById('mV').value.trim();save();closeModal();renderAll()">Lưu</button><button class="btn btn-s" onclick="closeModal()">Hủy</button>`)}
+function delEC(id){if(confirm('Xóa?')){D.expenseCats=D.expenseCats.filter(c=>c.id!==id);save();renderAll()}}
+
+// ===== INIT =====
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}
+renderAll();
+</script>
+</body>
+</html>
+
